@@ -27,10 +27,10 @@ public class YAMLTranslator {
 		// Creds (Parse from file)
 		String amazonAccessKey = "";
 		String amazonSecretKey = "";
-		String amazonRegion = "us-east-2";
+		String amazonRegion = "";
 		
 		// Other vars
-		String inputLang = "en";
+		String inputLang = "";
 		String originalYAMLDir = "";
 		String outputYAMLDir = "";
 		String originalYAML = "";
@@ -57,21 +57,45 @@ public class YAMLTranslator {
 			System.exit(0);
 		}
 
+		/* Load settings YAML */
+		YamlConfiguration settingsYaml = YamlConfiguration.loadConfiguration(new File("./settings.yml"));
+		// TODO: Default YAML copied to same dir
+		amazonAccessKey = settingsYaml.getString("amazonAccessKey");
+		amazonSecretKey = settingsYaml.getString("amazonSecretKey");
+		amazonRegion = settingsYaml.getString("amazonRegion");
+		originalYAMLDir = settingsYaml.getString("originalYAMLDir");
+		outputYAMLDir = settingsYaml.getString("outputYAMLDir");
+		inputLang = settingsYaml.getString("inputLang");
+		
 		/* Enter amazon creds */
-		System.out.println("Enter Amazon Access Key: ");
-		amazonAccessKey = scanner.nextLine().toString();
+		if (amazonAccessKey.equals("")) {
+			System.out.println("Enter Amazon Access Key: ");
+			amazonAccessKey = scanner.nextLine().toString();
+		}
 
-		System.out.println("Enter Amazon Secret Key: ");
-		amazonSecretKey = scanner.nextLine().toString();
+		if (amazonSecretKey.equals("")) {
+			System.out.println("Enter Amazon Secret Key: ");
+			amazonSecretKey = scanner.nextLine().toString();
+		}
+		
+		if (amazonRegion.equals("")) {
+			System.out.println("Enter Amazon Region: ");
+			amazonRegion = scanner.nextLine().toString();
+		}
 
 		if (originalYAMLDir.equals("")) {
-			System.out.println("Enter parent directory of original YAML: (include ending /)");
+			System.out.println("Enter parent directory of original YAML (include ending /): ");
 			originalYAMLDir = scanner.nextLine().toString();
 		}
 
 		if (outputYAMLDir.equals("")) {
 			System.out.println("Enter parent directory of output YAML (include ending /): ");
 			outputYAMLDir = scanner.nextLine().toString();
+		}
+		
+		if (inputLang.equals("")) {
+			System.out.println("Enter language of original YAML: ");
+			inputLang = scanner.nextLine().toString();
 		}
 
 		for (String eaSupportedLang : supportedLangs) {
@@ -142,6 +166,7 @@ public class YAMLTranslator {
 					translatedLine += result.getTranslatedText();
 				}
 
+				// TODO: Make exclusions configurable
 				// Replace BStats with bStats
 				translatedLine = translatedLine.replaceAll("(?i)BStats", "bStats");
 
@@ -199,7 +224,7 @@ public class YAMLTranslator {
 			System.out.println("Done with " + eaSupportedLang + "...");
 		}
 		// Done!
-		System.out.println("Wrote translation(s) to " + outputYAMLDir + " successfully! \nExiting...");
+		System.out.println("Finished! Results saved to " + outputYAMLDir + " . \nExiting...");
 		scanner.close();
 	}
 }
