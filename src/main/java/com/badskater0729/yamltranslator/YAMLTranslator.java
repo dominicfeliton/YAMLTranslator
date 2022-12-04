@@ -41,6 +41,8 @@ public class YAMLTranslator {
 		String outputYAMLDir = "";
 		String originalYAML = "";
 		String outputYAML = "";
+		
+		HashMap<String, String> replacementVals = new HashMap<>();
 
 		Scanner scanner = new Scanner(System.in);
 
@@ -80,6 +82,9 @@ public class YAMLTranslator {
 		originalYAMLDir = settingsYaml.getString("originalYAMLDir");
 		outputYAMLDir = settingsYaml.getString("outputYAMLDir");
 		inputLang = settingsYaml.getString("inputLang");
+		for (String eaKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
+			replacementVals.put(eaKey, settingsYaml.get("replacementValues." + eaKey).toString());
+		}
 		
 		/* Enter amazon creds */
 		if (amazonAccessKey.equals("")) {
@@ -175,23 +180,11 @@ public class YAMLTranslator {
 					translatedLine += result.getTranslatedText();
 				}
 
-				// TODO: Make exclusions configurable
-				// Replace BStats with bStats
-				translatedLine = translatedLine.replaceAll("(?i)BStats", "bStats");
-
-				// Fix WorldwideChat Typos
-				translatedLine = translatedLine.replaceAll("(?i)WorldWideChat", "WorldwideChat");
-				translatedLine = translatedLine.replaceAll("(?i)WorldVideChat", "WorldwideChat");
-				translatedLine = translatedLine.replaceAll("(?i)WorldwideCat", "WorldwideChat");
-				translatedLine = translatedLine.replaceAll("(?i)WorldWide Chat", "WorldwideChat");
-
-				// Replace any weird vars
-				translatedLine = translatedLine.replaceAll("%I", "%i");
-				translatedLine = translatedLine.replaceAll("%O", "%o");
-				translatedLine = translatedLine.replaceAll("%E", "%e");
-				translatedLine = translatedLine.replaceAll("(?i)% o", "%o");
-				translatedLine = translatedLine.replaceAll("(?i)% e", "%e");
-				translatedLine = translatedLine.replaceAll("(?i)% i", "%i");
+				// Factor in exclusions
+				for (String eaKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
+					translatedLine = translatedLine.replaceAll(eaKey, 
+							replacementVals.get(eaKey).toString());
+				}
 
 				// Add a space before every %, escape all apostrophes
 				ArrayList<Character> sortChars = new ArrayList<Character>(

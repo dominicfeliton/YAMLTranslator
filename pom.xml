@@ -65,6 +65,7 @@
               <include>commons-logging:commons-logging</include>
               <include>com.fasterxml.jackson.core:*</include>
               <include>org.apache.httpcomponents:*</include>
+              <include>joda-time:joda-time</include>
             </includes>
           </artifactSet>
           <filters>
@@ -118,6 +119,10 @@
             <relocation>
               <pattern>com.fasterxml.jackson</pattern>
               <shadedPattern>com.badskater0729.yamltranslator.libs.com.fasterxml.jackson</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.joda</pattern>
+              <shadedPattern>com.badskater0729.yamltranslator.libs.org.joda</shadedPattern>
             </relocation>
           </relocations>
         </configuration>
