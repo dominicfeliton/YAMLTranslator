@@ -11,7 +11,6 @@
   </properties>
 
   <dependencies>
-    <!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
@@ -61,6 +60,11 @@
               <include>org.spigotmc:spigot-api</include>
               <include>com.amazonaws:*</include>
               <include>org.jsoup:jsoup</include>
+              <include>org.yaml:snakeyaml</include>
+              <include>com.google.guava:guava</include>
+              <include>commons-logging:commons-logging</include>
+              <include>com.fasterxml.jackson.core:*</include>
+              <include>org.apache.httpcomponents:*</include>
             </includes>
           </artifactSet>
           <filters>
@@ -74,6 +78,12 @@
                 <exclude>META-INF/*.RSA</exclude>
                 <exclude>META-INF/**</exclude>
               </excludes>
+            </filter>
+            <filter>
+              <artifact>commons*</artifact>
+              <includes>
+                <include>**</include>
+              </includes>
             </filter>
           </filters>
           <relocations>
@@ -92,6 +102,22 @@
             <relocation>
               <pattern>org.bukkit</pattern>
               <shadedPattern>com.badskater0729.yamltranslator.libs.org.bukkit</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.yaml</pattern>
+              <shadedPattern>com.badskater0729.yamltranslator.libs.org.yaml</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.google</pattern>
+              <shadedPattern>com.badskater0729.yamltranslator.libs.com.google</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache</pattern>
+              <shadedPattern>com.badskater0729.yamltranslator.libs.org.apache</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.fasterxml.jackson</pattern>
+              <shadedPattern>com.badskater0729.yamltranslator.libs.com.fasterxml.jackson</shadedPattern>
             </relocation>
           </relocations>
         </configuration>

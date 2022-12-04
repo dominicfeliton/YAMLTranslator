@@ -1,7 +1,13 @@
 package com.badskater0729.yamltranslator;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +28,7 @@ import com.amazonaws.services.translate.model.TranslateTextResult;
 
 public class YAMLTranslator {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
 		// Creds (Parse from file)
 		String amazonAccessKey = "";
@@ -41,24 +47,32 @@ public class YAMLTranslator {
 		/* Get supported languages from AWS docs */
 		ArrayList<String> supportedLangs = new ArrayList<String>();
 		Document doc;
-		try {
-			doc = Jsoup.connect("https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html").get();
-			Elements tr = doc.select("tr");
-			for (int i = 1; i < tr.size(); i++) {
-				Elements td = tr.get(i).select("td");
-				if (td.size() > 0) {
-					// langCode, langName == AmazonLangObj constructor
-					// HTML page starts with langName, then langCode
-					supportedLangs   .add(td.get(1).html());
-				}
+		doc = Jsoup.connect("https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html").get();
+		Elements tr = doc.select("tr");
+		for (int i = 1; i < tr.size(); i++) {
+			Elements td = tr.get(i).select("td");
+			if (td.size() > 0) {
+				// langCode, langName == AmazonLangObj constructor
+				// HTML page starts with langName, then langCode
+				supportedLangs.add(td.get(1).html());
 			}
-		} catch (IOException e2) {
-			e2.printStackTrace();
-			System.exit(0);
 		}
 
 		/* Load settings YAML */
-		YamlConfiguration settingsYaml = YamlConfiguration.loadConfiguration(new File("./settings.yml"));
+		URL defaultSettings = YAMLTranslator.class.getClassLoader().getResource("settings.yml");
+		File settingsFile = new File("./settings.yml");
+		if (!settingsFile.exists()) {
+			copyFileUsingStream(defaultSettings.openConnection().getInputStream(), settingsFile);
+		}
+		
+		YamlConfiguration settingsYaml = YamlConfiguration.loadConfiguration(settingsFile);
+		Reader mainConfigStream = null;
+		mainConfigStream = new InputStreamReader(defaultSettings.openConnection().getInputStream(), "UTF-8");
+		settingsYaml.setDefaults(YamlConfiguration.loadConfiguration(mainConfigStream));
+		settingsYaml.options().copyDefaults(true);
+		
+		settingsYaml.save("./settings.yml");
+		
 		// TODO: Default YAML copied to same dir
 		amazonAccessKey = settingsYaml.getString("amazonAccessKey");
 		amazonSecretKey = settingsYaml.getString("amazonSecretKey");
@@ -114,36 +128,31 @@ public class YAMLTranslator {
 			YamlConfiguration newConfig = YamlConfiguration.loadConfiguration(new File(outputYAML));
 
 			// Update existing target YAML, or create new one 
-			try {
-				// Don't translate existing values
-				if (new File(outputYAML).exists()) {
-					System.out.println("Found existing file at output YAML path. \nParsing...");
-					// Find new keys from original config
-					for (String eaKey : messagesConfig.getConfigurationSection("Messages").getKeys(true)) {
-						if (!newConfig.contains("Messages." + eaKey)) {
-							untranslated.put(eaKey, messagesConfig.getString("Messages." + eaKey));
-						}
-					}
-					// Find old unneeded keys from new config and delete them
-					for (String eaKey : newConfig.getConfigurationSection("Messages").getKeys(true)) {
-						if (!messagesConfig.contains("Messages." + eaKey)) {
-							newConfig.set("Messages." + eaKey, null);
-							newConfig.save(outputYAML);
-							System.out.println("Deleted old key: " + eaKey);
-						}
-					}
-				} else {
-					/* Create new config */
-					System.out.println("Creating new YAML...");
-					newConfig.createSection("Messages");
-					newConfig.save(new File(outputYAML));
-					for (String eaKey : messagesConfig.getConfigurationSection("Messages").getKeys(true)) {
+			// Don't translate existing values
+			if (new File(outputYAML).exists()) {
+				System.out.println("Found existing file at output YAML path. \nParsing...");
+				// Find new keys from original config
+				for (String eaKey : messagesConfig.getConfigurationSection("Messages").getKeys(true)) {
+					if (!newConfig.contains("Messages." + eaKey)) {
 						untranslated.put(eaKey, messagesConfig.getString("Messages." + eaKey));
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(0);
+				// Find old unneeded keys from new config and delete them
+				for (String eaKey : newConfig.getConfigurationSection("Messages").getKeys(true)) {
+					if (!messagesConfig.contains("Messages." + eaKey)) {
+						newConfig.set("Messages." + eaKey, null);
+						newConfig.save(outputYAML);
+						System.out.println("Deleted old key: " + eaKey);
+					}
+				}
+			} else {
+				/* Create new config */
+				System.out.println("Creating new YAML...");
+				newConfig.createSection("Messages");
+				newConfig.save(new File(outputYAML));
+				for (String eaKey : messagesConfig.getConfigurationSection("Messages").getKeys(true)) {
+					untranslated.put(eaKey, messagesConfig.getString("Messages." + eaKey));
+				}
 			}
 
 			/* Initialize AWS Creds + Translation Object */
@@ -214,17 +223,27 @@ public class YAMLTranslator {
 
 				// Translation done, write to new config file
 				newConfig.set("Messages." + translatedLineName, translatedLine);
-				try {
-					newConfig.save(new File(outputYAML));
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(0);
-				}
+				newConfig.save(new File(outputYAML));
 			}
 			System.out.println("Done with " + eaSupportedLang + "...");
 		}
 		// Done!
 		System.out.println("Finished! Results saved to " + outputYAMLDir + " . \nExiting...");
 		scanner.close();
+	}
+	
+	private static void copyFileUsingStream(InputStream is, File dest) throws IOException {
+	    OutputStream os = null;
+	    try {
+	        os = new FileOutputStream(dest);
+	        byte[] buffer = new byte[1024];
+	        int length;
+	        while ((length = is.read(buffer)) > 0) {
+	            os.write(buffer, 0, length);
+	        }
+	    } finally {
+	        is.close();
+	        os.close();
+	    }
 	}
 }
