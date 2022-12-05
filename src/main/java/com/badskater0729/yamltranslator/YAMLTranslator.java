@@ -75,7 +75,6 @@ public class YAMLTranslator {
 		
 		settingsYaml.save("./settings.yml");
 		
-		// TODO: Default YAML copied to same dir
 		amazonAccessKey = settingsYaml.getString("amazonAccessKey");
 		amazonSecretKey = settingsYaml.getString("amazonSecretKey");
 		amazonRegion = settingsYaml.getString("amazonRegion");
@@ -86,7 +85,7 @@ public class YAMLTranslator {
 			replacementVals.put(eaKey, settingsYaml.get("replacementValues." + eaKey).toString());
 		}
 		
-		/* Enter amazon creds */
+		/* Enter any missing vars */
 		if (amazonAccessKey.equals("")) {
 			System.out.println("Enter Amazon Access Key: ");
 			amazonAccessKey = scanner.nextLine().toString();
@@ -108,7 +107,7 @@ public class YAMLTranslator {
 		}
 
 		if (outputYAMLDir.equals("")) {
-			System.out.println("Enter parent directory of output YAML (include ending /): ");
+			System.out.println("Enter parent directory of output YAMLs (include ending /): ");
 			outputYAMLDir = scanner.nextLine().toString();
 		}
 		
@@ -117,6 +116,7 @@ public class YAMLTranslator {
 			inputLang = scanner.nextLine().toString();
 		}
 
+		/* Begin translating for all langs */
 		for (String eaSupportedLang : supportedLangs) {
 			// Don't translate the same language
 			if (eaSupportedLang.equals(inputLang)) {continue;}
@@ -166,7 +166,6 @@ public class YAMLTranslator {
 					.withCredentials(new AWSStaticCredentialsProvider(awsCreds)).withRegion(amazonRegion).build();
 
 			// Successfully piped; begin translation
-			// ArrayList<String> translatedLines = new ArrayList<String>();
 			for (Map.Entry<String, String> entry : untranslated.entrySet()) {
 				String translatedLineName = entry.getKey();
 				String translatedLine = "";
