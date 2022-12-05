@@ -219,9 +219,11 @@ public class YAMLTranslator {
 			}
 			System.out.println("Done with " + eaSupportedLang + "...");
 		}
+		
 		// Done!
-		System.out.println("Finished! Results saved to " + outputYAMLDir + " . \nExiting...");
+		System.out.println("Finished! Results saved to \"" + outputYAMLDir + "\". \nExiting...");
 		scanner.close();
+		System.exit(0);
 	}
 	
 	private static void copyFileUsingStream(InputStream is, File dest) throws IOException {
