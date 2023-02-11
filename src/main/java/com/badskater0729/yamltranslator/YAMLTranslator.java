@@ -61,8 +61,8 @@ public class YAMLTranslator {
 		}
 
 		/* Load settings YAML */
-		URL defaultSettings = YAMLTranslator.class.getClassLoader().getResource("settings.yml");
-		File settingsFile = new File("./settings.yml");
+		URL defaultSettings = YAMLTranslator.class.getClassLoader().getResource("yt-settings.yml");
+		File settingsFile = new File("./yt-settings.yml");
 		if (!settingsFile.exists()) {
 			copyFileUsingStream(defaultSettings.openConnection().getInputStream(), settingsFile);
 		}
@@ -73,7 +73,7 @@ public class YAMLTranslator {
 		settingsYaml.setDefaults(YamlConfiguration.loadConfiguration(mainConfigStream));
 		settingsYaml.options().copyDefaults(true);
 		
-		settingsYaml.save("./settings.yml");
+		settingsYaml.save("./yt-settings.yml");
 		
 		amazonAccessKey = settingsYaml.getString("amazonAccessKey");
 		amazonSecretKey = settingsYaml.getString("amazonSecretKey");
