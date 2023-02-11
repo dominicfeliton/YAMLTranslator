@@ -15,10 +15,10 @@ outputYAMLDir: fillinhere
 inputLang: en
 replacementValues:
   (?i)BStats: bStats
-  (?i)WorldWideChat: WorldWideChat
-  (?i)WorldVideChat: WorldWideChat
-  (?i)WorldwideCat: WorldWideChat
-  (?i)WorldWide Chat: WorldWideChat
+  (?i)WorldWideChat: WorldwideChat
+  (?i)WorldVideChat: WorldwideChat
+  (?i)WorldwideCat: WorldwideChat
+  (?i)WorldWide Chat: WorldwideChat
   \%I: \%i
   \%O: \%o
   \%E: \%e
