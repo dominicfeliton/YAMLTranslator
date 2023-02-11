@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.badskater0729.yamltranslator</groupId>
   <artifactId>YAMLTranslator</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <description></description>
 
   <properties>
@@ -14,7 +14,7 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.19.2-R0.1-SNAPSHOT</version>
+      <version>1.19.3-R0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
