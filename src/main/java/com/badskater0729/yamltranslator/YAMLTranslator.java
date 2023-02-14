@@ -10,19 +10,19 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.translate.AmazonTranslate;
 import com.amazonaws.services.translate.AmazonTranslateClient;
+import com.amazonaws.services.translate.model.Language;
+import com.amazonaws.services.translate.model.ListLanguagesRequest;
 import com.amazonaws.services.translate.model.TranslateTextRequest;
 import com.amazonaws.services.translate.model.TranslateTextResult;
 
@@ -46,18 +46,19 @@ public class YAMLTranslator {
 
 		Scanner scanner = new Scanner(System.in);
 
-		/* Get supported languages from AWS docs */
+		/* Initialize AWS Creds + Translation Object */
+		BasicAWSCredentials awsCreds = new BasicAWSCredentials(amazonAccessKey, amazonSecretKey);
+		AmazonTranslate translate = AmazonTranslateClient.builder()
+				.withCredentials(new AWSStaticCredentialsProvider(awsCreds)).withRegion(amazonRegion).build();
+		
+		/* Get supported languages from AWS */
+		ListLanguagesRequest langRequest = new ListLanguagesRequest();
+		List<Language> awsLangs = translate.listLanguages(langRequest).getLanguages();
+		
+		/* Convert supportedLangs to our own SupportedLang objs */
 		ArrayList<String> supportedLangs = new ArrayList<String>();
-		Document doc;
-		doc = Jsoup.connect("https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html").get();
-		Elements tr = doc.select("tr");
-		for (int i = 1; i < tr.size(); i++) {
-			Elements td = tr.get(i).select("td");
-			if (td.size() > 0) {
-				// langCode, langName == AmazonLangObj constructor
-				// HTML page starts with langName, then langCode
-				supportedLangs.add(td.get(1).html());
-			}
+		for (Language eaLang : awsLangs) {
+			supportedLangs.add(eaLang.getLanguageCode());
 		}
 
 		/* Load settings YAML */
@@ -159,11 +160,6 @@ public class YAMLTranslator {
 					untranslated.put(eaKey, messagesConfig.getString("Messages." + eaKey));
 				}
 			}
-
-			/* Initialize AWS Creds + Translation Object */
-			BasicAWSCredentials awsCreds = new BasicAWSCredentials(amazonAccessKey, amazonSecretKey);
-			AmazonTranslate translate = AmazonTranslateClient.builder()
-					.withCredentials(new AWSStaticCredentialsProvider(awsCreds)).withRegion(amazonRegion).build();
 
 			// Successfully piped; begin translation
 			for (Map.Entry<String, String> entry : untranslated.entrySet()) {
