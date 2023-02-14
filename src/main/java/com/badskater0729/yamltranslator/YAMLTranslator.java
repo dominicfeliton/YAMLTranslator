@@ -48,11 +48,12 @@ public class YAMLTranslator {
 
 		/* Initialize AWS Creds + Translation Object */
 		BasicAWSCredentials awsCreds = new BasicAWSCredentials(amazonAccessKey, amazonSecretKey);
+		AWSStaticCredentialsProvider credsProvider = new AWSStaticCredentialsProvider(awsCreds);
 		AmazonTranslate translate = AmazonTranslateClient.builder()
-				.withCredentials(new AWSStaticCredentialsProvider(awsCreds)).withRegion(amazonRegion).build();
+				.withCredentials(credsProvider).withRegion(amazonRegion).build();
 		
 		/* Get supported languages from AWS */
-		ListLanguagesRequest langRequest = new ListLanguagesRequest();
+		ListLanguagesRequest langRequest = new ListLanguagesRequest().withRequestCredentialsProvider(credsProvider);
 		List<Language> awsLangs = translate.listLanguages(langRequest).getLanguages();
 		
 		/* Convert supportedLangs to our own SupportedLang objs */
