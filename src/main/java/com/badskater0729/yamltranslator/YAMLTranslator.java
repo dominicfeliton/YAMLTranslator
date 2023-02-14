@@ -46,22 +46,6 @@ public class YAMLTranslator {
 
 		Scanner scanner = new Scanner(System.in);
 
-		/* Initialize AWS Creds + Translation Object */
-		BasicAWSCredentials awsCreds = new BasicAWSCredentials(amazonAccessKey, amazonSecretKey);
-		AWSStaticCredentialsProvider credsProvider = new AWSStaticCredentialsProvider(awsCreds);
-		AmazonTranslate translate = AmazonTranslateClient.builder()
-				.withCredentials(credsProvider).withRegion(amazonRegion).build();
-		
-		/* Get supported languages from AWS */
-		ListLanguagesRequest langRequest = new ListLanguagesRequest().withRequestCredentialsProvider(credsProvider);
-		List<Language> awsLangs = translate.listLanguages(langRequest).getLanguages();
-		
-		/* Convert supportedLangs to our own SupportedLang objs */
-		ArrayList<String> supportedLangs = new ArrayList<String>();
-		for (Language eaLang : awsLangs) {
-			supportedLangs.add(eaLang.getLanguageCode());
-		}
-
 		/* Load settings YAML */
 		URL defaultSettings = YAMLTranslator.class.getClassLoader().getResource("yt-settings.yml");
 		File settingsFile = new File("./yt-settings.yml");
@@ -85,6 +69,23 @@ public class YAMLTranslator {
 		inputLang = settingsYaml.getString("inputLang");
 		for (String eaKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
 			replacementVals.put(eaKey, settingsYaml.get("replacementValues." + eaKey).toString());
+		}
+		
+		/* Initialize AWS Creds + Translation Object */
+		BasicAWSCredentials awsCreds = new BasicAWSCredentials(amazonAccessKey, amazonSecretKey);
+		AWSStaticCredentialsProvider credsProvider = new AWSStaticCredentialsProvider(awsCreds);
+		AmazonTranslate translate = AmazonTranslateClient.builder()
+				.withCredentials(credsProvider)
+				.withRegion(amazonRegion).build();
+		
+		/* Get supported languages from AWS */
+		ListLanguagesRequest langRequest = new ListLanguagesRequest().withRequestCredentialsProvider(credsProvider);
+		List<Language> awsLangs = translate.listLanguages(langRequest).getLanguages();
+		
+		/* Convert supportedLangs to our own SupportedLang objs */
+		ArrayList<String> supportedLangs = new ArrayList<String>();
+		for (Language eaLang : awsLangs) {
+			supportedLangs.add(eaLang.getLanguageCode());
 		}
 		
 		/* Enter any missing vars */
