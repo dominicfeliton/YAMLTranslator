@@ -86,7 +86,7 @@ public class YAMLTranslator {
 		ArrayList<String> supportedLangs = new ArrayList<String>();
 		for (Language eaLang : awsLangs) {
 			// Ignore auto
-			if (eaLang.getLanguageName().equals("auto")) {
+			if (eaLang.getLanguageCode().equals("auto") || eaLang.getLanguageName().equals("auto")) {
 				continue;
 			}
 			supportedLangs.add(eaLang.getLanguageCode());
