@@ -182,6 +182,7 @@ public class YAMLTranslator {
 
 				// Wrap placeholders with <span translate="no">...</span>
 				returnedText = matcher.replaceAll("<span translate=\"no\">$0</span>");
+				System.out.println("DEBUG REMOVE THIS: " + returnedText);
 
 				/* Actual translation */
 				if (entry.getValue().length() > 0) {
@@ -206,17 +207,17 @@ public class YAMLTranslator {
 			}
 
 			// Format check if already translated
-			/*
-			System.out.println("Final check on " + eaSupportedLang + "...");
+			System.out.println("Final format check on " + eaSupportedLang + "...");
 
 			for (String eaKey : newConfig.getConfigurationSection("Messages").getKeys(true)) {
 				String line = newConfig.getString("Messages." + eaKey);
 
-				line = line.replaceAll("(?<!\\{)\\b(\\d+)\\b(?!\\})", "{$1}");
+				for (String eaSettingsKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
+					line = line.replaceAll(eaKey, replacementVals.get(eaSettingsKey).toString());
+				}
 
 				newConfig.set("Messages." + eaKey, line);
 			}
-			 */
 
 			// Final save
 			newConfig.save(new File(outputYAML));
