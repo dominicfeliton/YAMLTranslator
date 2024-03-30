@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.badskater0729.yamltranslator</groupId>
   <artifactId>YAMLTranslator</artifactId>
-  <version>1.2.15</version>
+  <version>1.2.2</version>
   <description>Translate a given YAML file via Bukkit's implementation and Amazon Translate</description>
 
   <properties>
