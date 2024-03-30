@@ -19,9 +19,3 @@ replacementValues:
   (?i)WorldVideChat: WorldwideChat
   (?i)WorldwideCat: WorldwideChat
   (?i)WorldWide Chat: WorldwideChat
-  \%I: \%i
-  \%O: \%o
-  \%E: \%e
-  (?i)\% o: \%o
-  (?i)\% e: \%e
-  (?i)\% i: \%i   
