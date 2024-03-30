@@ -183,43 +183,32 @@ public class YAMLTranslator {
 
 				// Factor in exclusions
 				for (String eaKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
-					translatedLine = translatedLine.replaceAll(eaKey, 
-							replacementVals.get(eaKey).toString());
+					translatedLine = translatedLine.replaceAll(eaKey, replacementVals.get(eaKey).toString());
 				}
 
-				// Add a space before every %, escape all apostrophes
-				ArrayList<Character> sortChars = new ArrayList<Character>(
-						translatedLine.chars().mapToObj(c -> (char) c).collect(Collectors.toList()));
-				for (int j = sortChars.size() - 1; j > 0; j--) {
-					// % check; no space before %
-					if ((j - 1 > -1) && ((sortChars.get(j) == '%') && !(Character.isSpaceChar(sortChars.get(j - 1))
-							|| Character.isWhitespace(sortChars.get(j - 1))))) {
-						sortChars.add(j, ' ');
-						j--;
-					}
-					// Punctuation check
-					if ((sortChars.get(j) == '!' || sortChars.get(j) == '.' || sortChars.get(j) == '?'
-							|| sortChars.get(j) == ':') && j - 1 > -1
-							&& (Character.isSpaceChar(sortChars.get(j - 1))
-									|| Character.isWhitespace(sortChars.get(j - 1)))) {
-						sortChars.remove(j - 1);
-						j--;
-					}
-				}
+				// Ensure numbers are correctly formatted with braces
+				translatedLine = translatedLine.replaceAll("(?<!\\{)\\b(\\d+)\\b(?!\\})", "{$1}");
 
-				// Save final translatedLine
-				StringBuilder builder = new StringBuilder(sortChars.size());
-				for (Character ch : sortChars) {
-					builder.append(ch);
-				}
-				translatedLine = builder.toString();
 				System.out.println("(Translated) " + translatedLine);
 
 				// Translation done, write to new config file
 				newConfig.set("Messages." + translatedLineName, translatedLine);
-				newConfig.save(new File(outputYAML));
 			}
-			System.out.println("Done with " + eaSupportedLang + "...");
+
+			// Format check if already translated
+			System.out.println("Final check on " + eaSupportedLang + "...");
+
+			for (String eaKey : messagesConfig.getConfigurationSection("Messages").getKeys(true)) {
+				String line = messagesConfig.getString("Messages." + eaKey);
+
+				line = line.replaceAll("(?<!\\{)\\b(\\d+)\\b(?!\\})", "{$1}");
+
+				newConfig.set("Messages." + eaKey, line);
+			}
+
+			// Final save
+			newConfig.save(new File(outputYAML));
+			System.out.println("== Done with " + eaSupportedLang + " ==");
 		}
 		
 		// Done!
