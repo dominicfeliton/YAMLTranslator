@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -171,11 +173,19 @@ public class YAMLTranslator {
 			for (Map.Entry<String, String> entry : untranslated.entrySet()) {
 				String translatedLineName = entry.getKey();
 				String translatedLine = "";
-				System.out.println("(Original) " + entry.getValue());
+				String returnedText = entry.getValue();
+				System.out.println("(Original) " + returnedText);
+
+				// Regex to find placeholders like {0}, {1}, etc.
+				Pattern pattern = Pattern.compile("\\{(\\d+)\\}");
+				Matcher matcher = pattern.matcher(returnedText);
+
+				// Wrap placeholders with <span translate="no">...</span>
+				returnedText = matcher.replaceAll("<span translate=\"no\">$0</span>");
 
 				/* Actual translation */
 				if (entry.getValue().length() > 0) {
-					TranslateTextRequest request = new TranslateTextRequest().withText(entry.getValue())
+					TranslateTextRequest request = new TranslateTextRequest().withText(returnedText)
 							.withSourceLanguageCode(inputLang).withTargetLanguageCode(eaSupportedLang);
 					TranslateTextResult result = translate.translateText(request);
 					translatedLine += result.getTranslatedText();
@@ -186,8 +196,8 @@ public class YAMLTranslator {
 					translatedLine = translatedLine.replaceAll(eaKey, replacementVals.get(eaKey).toString());
 				}
 
-				// Ensure numbers are correctly formatted with braces
-				translatedLine = translatedLine.replaceAll("(?<!\\{)\\b(\\d+)\\b(?!\\})", "{$1}");
+				// Remove span translate=no around numbers with brackets
+				translatedLine = translatedLine.replaceAll("<span translate=\"no\">(\\{\\d+\\})</span>", "$1");
 
 				System.out.println("(Translated) " + translatedLine);
 
@@ -196,15 +206,17 @@ public class YAMLTranslator {
 			}
 
 			// Format check if already translated
+			/*
 			System.out.println("Final check on " + eaSupportedLang + "...");
 
-			for (String eaKey : messagesConfig.getConfigurationSection("Messages").getKeys(true)) {
-				String line = messagesConfig.getString("Messages." + eaKey);
+			for (String eaKey : newConfig.getConfigurationSection("Messages").getKeys(true)) {
+				String line = newConfig.getString("Messages." + eaKey);
 
 				line = line.replaceAll("(?<!\\{)\\b(\\d+)\\b(?!\\})", "{$1}");
 
 				newConfig.set("Messages." + eaKey, line);
 			}
+			 */
 
 			// Final save
 			newConfig.save(new File(outputYAML));
