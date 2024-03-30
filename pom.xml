@@ -154,6 +154,14 @@
             </goals>
             <phase>verify</phase>
           </execution>
+          <!-- Execution for clean phase -->
+          <execution>
+            <id>sort-on-clean</id>
+            <goals>
+              <goal>sort</goal>
+            </goals>
+            <phase>clean</phase>
+          </execution>
         </executions>
       </plugin>
     </plugins>
