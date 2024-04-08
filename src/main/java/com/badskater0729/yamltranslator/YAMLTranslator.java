@@ -216,11 +216,7 @@ public class YAMLTranslator {
 					line = line.replaceAll(eaSettingsKey, replacementVals.get(eaSettingsKey).toString());
 				}
 
-				String escapedLine = escapeSingleQuotes(line);
-
-				String finalLine = "'" + escapedLine + "'";
-
-				newConfig.set("Messages." + eaKey, finalLine);
+				newConfig.set("Messages." + eaKey, "\"" + line + "\"");
 			}
 
 			// Final save
@@ -248,9 +244,4 @@ public class YAMLTranslator {
 	        os.close();
 	    }
 	}
-
-	private static String escapeSingleQuotes(String input) {
-		return input.replace("'", "''");
-	}
-
 }
