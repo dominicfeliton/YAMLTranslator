@@ -216,12 +216,7 @@ public class YAMLTranslator {
 					line = line.replaceAll(eaSettingsKey, replacementVals.get(eaSettingsKey).toString());
 				}
 
-				String path = "Messages." + eaKey;
-				if (path == null || path.trim().isEmpty()) {
-					System.out.println("Attempting to set a value for an empty or null path. Key: " + eaKey);
-					continue; // Skip this iteration
-				}
-				newConfig.set(path, "\"" + line + "\"");
+				newConfig.set("Messages." + eaKey, line);
 			}
 
 			// Final save
