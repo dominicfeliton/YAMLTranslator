@@ -20,4 +20,4 @@ replacementValues:
   (?i)WorldwideCat: WorldwideChat
   (?i)WorldWide Chat: WorldwideChat
   (?i)WorldWieChat: WorldwideChat
-  '': ''''
+  (?i) : ''
