@@ -33,16 +33,16 @@ public class YAMLTranslator {
 	public static void main(String[] args) throws IOException {
 
 		// Creds (Parse from file)
-		String amazonAccessKey = "";
-		String amazonSecretKey = "";
-		String amazonRegion = "";
+		String amazonAccessKey;
+		String amazonSecretKey;
+		String amazonRegion;
 		
 		// Other vars
-		String inputLang = "";
-		String originalYAMLDir = "";
-		String outputYAMLDir = "";
-		String originalYAML = "";
-		String outputYAML = "";
+		String inputLang;
+		String originalYAMLDir;
+		String outputYAMLDir;
+		String originalYAML;
+		String outputYAML;
 		
 		HashMap<String, String> replacementVals = new HashMap<>();
 
@@ -72,7 +72,38 @@ public class YAMLTranslator {
 		for (String eaKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
 			replacementVals.put(eaKey, settingsYaml.get("replacementValues." + eaKey).toString());
 		}
-		
+
+		/* Enter any missing vars */
+		if (amazonAccessKey == null || amazonAccessKey.isEmpty()) {
+			System.out.println("Enter Amazon Access Key: ");
+			amazonAccessKey = scanner.nextLine();
+		}
+
+		if (amazonSecretKey == null || amazonSecretKey.isEmpty()) {
+			System.out.println("Enter Amazon Secret Key: ");
+			amazonSecretKey = scanner.nextLine();
+		}
+
+		if (amazonRegion == null || amazonRegion.isEmpty()) {
+			System.out.println("Enter Amazon Region: ");
+			amazonRegion = scanner.nextLine();
+		}
+
+		if (originalYAMLDir == null || originalYAMLDir.isEmpty()) {
+			System.out.println("Enter parent directory of original YAML (include ending /): ");
+			originalYAMLDir = scanner.nextLine();
+		}
+
+		if (outputYAMLDir == null || outputYAMLDir.isEmpty()) {
+			System.out.println("Enter parent directory of output YAMLs (include ending /): ");
+			outputYAMLDir = scanner.nextLine();
+		}
+
+		if (inputLang == null || inputLang.isEmpty()) {
+			System.out.println("Enter language of original YAML: ");
+			inputLang = scanner.nextLine();
+		}
+
 		/* Initialize AWS Creds + Translation Object */
 		BasicAWSCredentials awsCreds = new BasicAWSCredentials(amazonAccessKey, amazonSecretKey);
 		AWSStaticCredentialsProvider credsProvider = new AWSStaticCredentialsProvider(awsCreds);
@@ -92,37 +123,6 @@ public class YAMLTranslator {
 				continue;
 			}
 			supportedLangs.add(eaLang.getLanguageCode());
-		}
-		
-		/* Enter any missing vars */
-		if (amazonAccessKey.equals("")) {
-			System.out.println("Enter Amazon Access Key: ");
-			amazonAccessKey = scanner.nextLine().toString();
-		}
-
-		if (amazonSecretKey.equals("")) {
-			System.out.println("Enter Amazon Secret Key: ");
-			amazonSecretKey = scanner.nextLine().toString();
-		}
-		
-		if (amazonRegion.equals("")) {
-			System.out.println("Enter Amazon Region: ");
-			amazonRegion = scanner.nextLine().toString();
-		}
-
-		if (originalYAMLDir.equals("")) {
-			System.out.println("Enter parent directory of original YAML (include ending /): ");
-			originalYAMLDir = scanner.nextLine().toString();
-		}
-
-		if (outputYAMLDir.equals("")) {
-			System.out.println("Enter parent directory of output YAMLs (include ending /): ");
-			outputYAMLDir = scanner.nextLine().toString();
-		}
-		
-		if (inputLang.equals("")) {
-			System.out.println("Enter language of original YAML: ");
-			inputLang = scanner.nextLine().toString();
 		}
 
 		/* Begin translating for all langs */
@@ -177,7 +177,7 @@ public class YAMLTranslator {
 				System.out.println("(Original) " + returnedText);
 
 				// Regex to find placeholders like {0}, {1}, etc.
-				Pattern pattern = Pattern.compile("\\{(\\d+)\\}");
+				Pattern pattern = Pattern.compile("\\{(\\d+)}");
 				Matcher matcher = pattern.matcher(returnedText);
 
 				// Wrap placeholders with <span translate="no">...</span>
@@ -185,7 +185,7 @@ public class YAMLTranslator {
 				//System.out.println("DEBUG REMOVE THIS: " + returnedText);
 
 				/* Actual translation */
-				if (entry.getValue().length() > 0) {
+				if (!entry.getValue().isEmpty()) {
 					TranslateTextRequest request = new TranslateTextRequest().withText(returnedText)
 							.withSourceLanguageCode(inputLang).withTargetLanguageCode(eaSupportedLang);
 					TranslateTextResult result = translate.translateText(request);
@@ -194,11 +194,11 @@ public class YAMLTranslator {
 
 				// Factor in exclusions
 				for (String eaKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
-					translatedLine = translatedLine.replaceAll(eaKey, replacementVals.get(eaKey).toString());
+					translatedLine = translatedLine.replaceAll(eaKey, replacementVals.get(eaKey));
 				}
 
 				// Remove span translate=no around numbers with brackets
-				translatedLine = translatedLine.replaceAll("<span translate=\"no\">(\\{\\d+\\})</span>", "$1");
+				translatedLine = translatedLine.replaceAll("<span translate=\"no\">(\\{\\d+})</span>", "$1");
 
 				System.out.println("(Translated) " + translatedLine);
 
@@ -213,7 +213,7 @@ public class YAMLTranslator {
 				String line = newConfig.getString("Messages." + eaKey);
 
 				for (String eaSettingsKey : settingsYaml.getConfigurationSection("replacementValues").getKeys(false)) {
-					line = line.replaceAll(eaSettingsKey, replacementVals.get(eaSettingsKey).toString());
+                    line = line.replaceAll(eaSettingsKey, replacementVals.get(eaSettingsKey));
 				}
 
 				newConfig.set("Messages." + eaKey, line);
@@ -231,17 +231,12 @@ public class YAMLTranslator {
 	}
 	
 	private static void copyFileUsingStream(InputStream is, File dest) throws IOException {
-	    OutputStream os = null;
-	    try {
-	        os = new FileOutputStream(dest);
-	        byte[] buffer = new byte[1024];
-	        int length;
-	        while ((length = is.read(buffer)) > 0) {
-	            os.write(buffer, 0, length);
-	        }
-	    } finally {
-	        is.close();
-	        os.close();
-	    }
+        try (is; OutputStream os = new FileOutputStream(dest)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+        }
 	}
 }
