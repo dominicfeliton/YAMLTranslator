@@ -8,19 +8,60 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Check if Homebrew is installed
-if ! command_exists brew; then
-    echo "Homebrew is not installed. Please install it first."
-    echo "You can install Homebrew by running:"
-    echo '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+# Detect OS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macOS"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS="Linux"
+else
+    echo "Unsupported operating system. This script only works on macOS and Linux."
     exit 1
 fi
 
+# OS-specific package manager and installation commands
+if [ "$OS" == "macOS" ]; then
+    PKG_MANAGER="brew"
+    INSTALL_CMD="brew install"
+    if ! command_exists brew; then
+        echo "Homebrew is not installed. Please install it first."
+        echo "You can install Homebrew by running:"
+        echo '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+        exit 1
+    fi
+elif [ "$OS" == "Linux" ]; then
+    if command_exists apt-get; then
+        PKG_MANAGER="apt-get"
+        INSTALL_CMD="sudo apt-get install -y"
+    elif command_exists yum; then
+        PKG_MANAGER="yum"
+        INSTALL_CMD="sudo yum install -y"
+    else
+        echo "Unsupported Linux distribution. Please install the required packages manually."
+        exit 1
+    fi
+fi
+
 # Check for required commands
-for cmd in mvn shasum md5; do
+for cmd in mvn shasum md5sum; do
     if ! command_exists $cmd; then
-        echo "$cmd is not installed. Attempting to install via Homebrew..."
-        brew install $cmd
+        echo "$cmd is not installed. Attempting to install..."
+        if [ "$OS" == "macOS" ]; then
+            $INSTALL_CMD $cmd
+        elif [ "$OS" == "Linux" ]; then
+            case $cmd in
+                mvn)
+                    $INSTALL_CMD maven
+                    ;;
+                shasum)
+                    $INSTALL_CMD perl
+                    ;;
+                md5sum)
+                    # md5sum is usually pre-installed on Linux
+                    echo "md5sum not found. Please install it manually."
+                    exit 1
+                    ;;
+            esac
+        fi
         if [ $? -ne 0 ]; then
             echo "Failed to install $cmd. Please install it manually."
             exit 1
@@ -59,8 +100,13 @@ echo "Generating checksums..."
 cd com/badskater0729/yamltranslator/YAMLTranslator/"$version"
 
 for file in YAMLTranslator-"$version".{jar,pom}; do
-    shasum -a 1 "$file" > "$file.sha1"
-    md5 "$file" > "$file.md5"
+    if [ "$OS" == "macOS" ]; then
+        shasum -a 1 "$file" > "$file.sha1"
+        md5 "$file" > "$file.md5"
+    elif [ "$OS" == "Linux" ]; then
+        sha1sum "$file" > "$file.sha1"
+        md5sum "$file" > "$file.md5"
+    fi
 done
 
 echo "Deployment complete. Files are ready to be committed and pushed to the repository."
