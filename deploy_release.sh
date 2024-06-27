@@ -81,7 +81,7 @@ read -p "Enter the version number: " version
 
 # Run Maven install command
 mvn install:install-file \
-    -DgroupId=com.badskater0729.yamltranslator \
+    -DgroupId=com.dominicfeliton.yamltranslator \
     -DartifactId=YAMLTranslator \
     -Dversion="$version" \
     -Dfile="$jar_path" \
@@ -97,7 +97,7 @@ fi
 
 # Generate SHA1 and MD5 checksums
 echo "Generating checksums..."
-cd com/badskater0729/yamltranslator/YAMLTranslator/"$version"
+cd com/dominicfeliton/yamltranslator/YAMLTranslator/"$version"
 
 for file in YAMLTranslator-"$version".{jar,pom}; do
     if [ "$OS" == "macOS" ]; then

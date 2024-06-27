@@ -39,7 +39,7 @@ $version = Read-Host -Prompt "Enter the version number"
 
 # Run Maven install command
 mvn install:install-file `
-    "-DgroupId=com.badskater0729.yamltranslator" `
+    "-DgroupId=com.dominicfeliton.yamltranslator" `
     "-DartifactId=YAMLTranslator" `
     "-Dversion=$version" `
     "-Dfile=$jar_path" `
@@ -55,7 +55,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # Generate SHA1 and MD5 checksums
 Write-Host "Generating checksums..."
-Set-Location -Path "com\badskater0729\yamltranslator\YAMLTranslator\$version"
+Set-Location -Path "com\dominicfeliton\yamltranslator\YAMLTranslator\$version"
 
 $files = @("YAMLTranslator-$version.jar", "YAMLTranslator-$version.pom")
 foreach ($file in $files) {
